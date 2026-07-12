@@ -1,18 +1,23 @@
-import 'dotenv/config';
+import createHttpError from 'http-errors';
 
-const errorHandler = (err, req, res) => {
-  if (process.env.DEPLOYMENT_ENV === 'development') {
-    console.error(err.stack);
-    res.status(500).json({
-      message: err.message,
-      stack: err.stack
-    });
+const errorHandler = (err, req, res, next) => {
+  const httpError = createHttpError.isHttpError(err)
+    ? err
+    : createHttpError(500, err.message || 'Internal Server Error');
+
+  if (res.headersSent) {
+    return next(err);
   }
-  if (process.env.DEPLOYMENT_ENV === 'production') {
-    res.status(500).json({
-      message: 'Internal Server Error'
-    });
-  }
+
+  res.status(httpError.statusCode).json({
+    message:
+      process.env.NODE_ENV === 'development'
+        ? httpError.message
+        : httpError.statusCode === 500
+          ? 'Internal Server Error'
+          : httpError.message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  });
 };
 
 export default errorHandler;
