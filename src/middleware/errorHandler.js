@@ -1,9 +1,8 @@
-import createHttpError from 'http-errors';
+import createHttpError, { HttpError } from 'http-errors';
 
-const errorHandler = (err, req, res, next) => {
-  const httpError = createHttpError.isHttpError(err)
-    ? err
-    : createHttpError(500, err.message || 'Internal Server Error');
+export const errorHandler = (err, req, res, next) => {
+  const httpError =
+    err instanceof HttpError ? err : createHttpError(500, err.message || 'Internal Server Error');
 
   if (res.headersSent) {
     return next(err);
@@ -19,5 +18,3 @@ const errorHandler = (err, req, res, next) => {
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 };
-
-export default errorHandler;

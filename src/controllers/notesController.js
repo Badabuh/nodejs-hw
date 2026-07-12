@@ -1,4 +1,5 @@
 import Note from '../models/note.js';
+import createHttpError from 'http-errors';
 
 const getAllNotes = async (req, res) => {
   const result = await Note.find();
@@ -6,8 +7,11 @@ const getAllNotes = async (req, res) => {
 };
 
 const getNoteById = async (req, res) => {
-  const { id } = req.params;
-  const note = await Note.findById(id);
+  const { noteId } = req.params;
+  if (!noteId) {
+    return res.status(404).json(createHttpError(404, 'Note ID is required'));
+  }
+  const note = await Note.findById(noteId);
   res.status(200).json(note);
 };
 
@@ -18,16 +22,26 @@ const createNote = async (req, res) => {
 };
 
 const updateNote = async (req, res) => {
-  const { id } = req.params;
+  const { noteId } = req.params;
+  if (!noteId) {
+    return res.status(404).json(createHttpError(404, 'Note ID is required'));
+  }
   const { title, content } = req.body;
-  const updatedNote = await Note.findByIdAndUpdate(id, { title, content }, { new: true });
+  const updatedNote = await Note.findByIdAndUpdate(
+    noteId,
+    { title, content },
+    { returnDocument: 'after' }
+  );
   res.status(200).json(updatedNote);
 };
 
 const deleteNote = async (req, res) => {
-  const { id } = req.params;
-  await Note.findByIdAndDelete(id);
-  res.status(200).json({ message: `Note with ID: ${id} deleted` });
+  const { noteId } = req.params;
+  if (!noteId) {
+    return res.status(404).json(createHttpError(404, 'Note ID is required'));
+  }
+  const deletedNote = await Note.findByIdAndDelete(noteId);
+  res.status(200).json(deletedNote);
 };
 
 export { getAllNotes, getNoteById, createNote, updateNote, deleteNote };

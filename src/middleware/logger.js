@@ -1,6 +1,6 @@
 import pinoHttp from 'pino-http';
 
-const logger = pinoHttp(
+export const logger = pinoHttp(
   process.env.NODE_ENV === 'development'
     ? {
         transport: {
@@ -14,5 +14,3 @@ const logger = pinoHttp(
       }
     : {}
 );
-
-export default logger;
