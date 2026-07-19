@@ -4,9 +4,9 @@ import { TAGS } from '../constants/tags.js';
 
 const getAllNotesSchema = {
   [Segments.QUERY]: Joi.object({
-    page: Joi.number().integer().min(1),
-    perPage: Joi.number().integer().min(5).max(20),
-    search: Joi.string().trim().default(''),
+    page: Joi.number().integer().min(1).default(1),
+    perPage: Joi.number().integer().min(5).max(20).default(10),
+    search: Joi.string().trim().allow('').default(''),
     tag: Joi.string().valid(...TAGS)
   })
 };
@@ -26,7 +26,7 @@ const noteIdSchema = {
 const createNoteSchema = {
   [Segments.BODY]: Joi.object({
     title: Joi.string().trim().required(),
-    content: Joi.string().trim().default(''),
+    content: Joi.string().trim().allow('').default(''),
     tag: Joi.string().valid(...TAGS)
   })
 };
