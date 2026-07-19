@@ -7,6 +7,7 @@ import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import cors from 'cors';
 import { connectMongoDB } from './db/connectMongoDB.js';
+import { errors } from 'celebrate';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(logger);
 app.use(helmet());
 app.use(router);
 app.use(notFoundHandler);
+app.use(errors());
 app.use(errorHandler);
 
 await connectMongoDB();

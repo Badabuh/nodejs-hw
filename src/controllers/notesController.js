@@ -2,10 +2,32 @@ import Note from '../models/note.js';
 import createHttpError from 'http-errors';
 
 const getAllNotes = async (req, res) => {
-  const result = await Note.find();
-  res.status(200).json(result);
-};
+  const { page = 1, perPage = 10, search = '', tag } = req.query;
+  const notesQuery = Note.find();
+  if (search) {
+    notesQuery.where({
+      $or: [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
+      ]
+    });
+  }
+  if (tag) {
+    notesQuery.where('tag').equals(tag);
+  }
 
+  const [totalNotes, notes] = await Promise.all([
+    notesQuery.countDocuments(),
+    notesQuery.skip((page - 1) * perPage).limit(perPage)
+  ]);
+  res.status(200).json({
+    totalPages: Math.ceil(totalNotes / perPage),
+    page: page,
+    perPage: perPage,
+    notes: notes,
+    totalNotes: totalNotes
+  });
+};
 const getNoteById = async (req, res) => {
   const { noteId } = req.params;
   const note = await Note.findById(noteId);
@@ -16,17 +38,17 @@ const getNoteById = async (req, res) => {
 };
 
 const createNote = async (req, res) => {
-  const { title, content } = req.body;
-  const newNote = await Note.create({ title, content });
+  const { title, content, tag } = req.body;
+  const newNote = await Note.create({ title, content, tag });
   res.status(201).json(newNote);
 };
 
 const updateNote = async (req, res) => {
   const { noteId } = req.params;
-  const { title, content } = req.body;
+  const { title, content, tag } = req.body;
   const updatedNote = await Note.findByIdAndUpdate(
     noteId,
-    { title, content },
+    { title, content, tag },
     { returnDocument: 'after' }
   );
   if (!updatedNote) {
