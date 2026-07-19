@@ -4,23 +4,21 @@ import { TAGS } from '../constants/tags.js';
 
 const getAllNotesSchema = {
   [Segments.QUERY]: Joi.object({
-    page: Joi.number().integer().min(1),
-    perPage: Joi.number().integer().min(5).max(20),
-    search: Joi.string().trim().default(''),
+    page: Joi.number().integer().min(1).default(1),
+    perPage: Joi.number().integer().min(3).max(10).default(10),
+    search: Joi.string().trim().allow(''),
     tag: Joi.string().valid(...TAGS)
   })
 };
 
 const noteIdSchema = {
   [Segments.PARAMS]: Joi.object({
-    noteId: Joi.string()
-      .custom((value, helpers) => {
-        if (!isValidObjectId(value)) {
-          return helpers.error('any.invalid');
-        }
-        return value;
-      })
-      .required()
+    noteId: Joi.string().custom((value, helpers) => {
+      if (!isValidObjectId(value)) {
+        return helpers.error('any.invalid');
+      }
+      return value;
+    })
   })
 };
 const createNoteSchema = {
@@ -35,7 +33,7 @@ const updateNoteSchema = {
   ...noteIdSchema,
   [Segments.BODY]: Joi.object({
     title: Joi.string().trim(),
-    content: Joi.string().trim().allow(''),
+    content: Joi.string().trim(),
     tag: Joi.string().valid(...TAGS)
   }).min(1)
 };

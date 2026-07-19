@@ -9,19 +9,19 @@ import {
 import {
   createNoteSchema,
   updateNoteSchema,
-  validateNoteIdParam,
-  validateNoteSchema
+  noteIdSchema,
+  getAllNotesSchema
 } from '../validations/notesValidation.js';
 import { celebrate } from 'celebrate';
 const router = Router();
 
-router.get('/notes', celebrate(validateNoteSchema), getAllNotes);
+router.get('/notes', celebrate(getAllNotesSchema), getAllNotes);
 
-router.get('/notes/:noteId', celebrate(validateNoteIdParam), getNoteById);
+router.get('/notes/:noteId', celebrate(noteIdSchema), getNoteById);
 
 router.post('/notes', celebrate(createNoteSchema), createNote);
 router.patch('/notes/:noteId', celebrate(updateNoteSchema), updateNote);
 
-router.delete('/notes/:noteId', celebrate(validateNoteIdParam), deleteNote);
+router.delete('/notes/:noteId', celebrate(noteIdSchema), deleteNote);
 
 export default router;
