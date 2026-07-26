@@ -4,56 +4,30 @@ const getAllNotes = async (req, res) => {
   const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
   const { page = 1, perPage = 10, search = '', tag } = req.query;
 
-  const pipeline = [];
-
+  const notesQuery = await Note.find({ userId });
   if (search) {
-    pipeline.push({
-      $match: {
-        $or: [
-          { $text: { $search: search, $caseSensitive: false } },
-          { $text: { $search: search, $caseSensitive: false } }
-        ]
-      }
+    notesQuery.where({
+      $or: [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
+      ]
     });
   }
-
   if (tag) {
-    pipeline.push({
-      $match: {
-        tag
-      }
-    });
-  }
-  if (userId) {
-    pipeline.push({
-      $match: {
-        userId
-      }
-    });
+    notesQuery.where('tag').equals(tag);
   }
 
-  pipeline.push({
-    $sort: { createdAt: -1 }
-  });
-
-  const [result] = await Note.aggregate([
-    ...pipeline,
-    {
-      $facet: {
-        notes: [{ $skip: (page - 1) * perPage }, { $limit: perPage }],
-        totalCount: [{ $count: 'count' }]
-      }
-    }
+  const [totalNotes, notes] = await Promise.all([
+    notesQuery.countDocuments(),
+    notesQuery.skip((page - 1) * perPage).limit(perPage)
   ]);
-
-  const notes = result.notes;
-  const totalCount = result.totalCount[0] ? result.totalCount[0].count : 0;
 
   res.status(200).json({
     notes,
-    totalCount,
-    currentPage: page,
-    totalPages: Math.ceil(totalCount / perPage)
+    page,
+    perPage,
+    totalNotes,
+    totalPages: Math.ceil(totalNotes / perPage)
   });
 };
 
@@ -80,7 +54,7 @@ const updateNote = async (req, res) => {
   const { title, content, tag } = req.body;
   const updatedNote = await Note.findOneAndUpdate(
     { _id: noteId, userId },
-    { title, content, tag, userId },
+    { title, content, tag },
     { returnDocument: 'after' }
   );
   if (!updatedNote) {

@@ -27,4 +27,4 @@ const SessionSchema = new Schema(
   },
   { timestamps: true }
 );
-export default mongoose.model('Session', SessionSchema);
+export const Session = mongoose.model('Session', SessionSchema);

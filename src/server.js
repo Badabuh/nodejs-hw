@@ -10,7 +10,6 @@ import { errorHandler } from './middleware/errorHandler.js';
 import cors from 'cors';
 import { connectMongoDB } from './db/connectMongoDB.js';
 import { errors } from 'celebrate';
-import { authMiddleware } from './middleware/authMiddleware.js';
 
 const app = express();
 
@@ -19,7 +18,6 @@ app.use(cookieParser());
 app.use(cors({ credentials: true, origin: true }));
 app.use(logger);
 app.use(helmet());
-app.use(authMiddleware);
 app.use(authRouter);
 app.use(notesRouter);
 app.use(notFoundHandler);

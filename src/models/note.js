@@ -18,12 +18,16 @@ const NoteSchema = new Schema(
       type: String,
       enum: TAGS,
       default: 'Todo'
+    },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
     }
   },
   { timestamps: true }
 );
 
-NoteSchema.index({ tag: 1, createdAt: -1 });
+NoteSchema.index({ userId: 1, tag: 1 });
 NoteSchema.index({ title: 'text', content: 'text' });
 
-export default mongoose.model('Note', NoteSchema);
+export const Note = mongoose.model('Note', NoteSchema);

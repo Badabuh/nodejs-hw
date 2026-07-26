@@ -5,20 +5,20 @@ import { FIFTEEN_MINUTES, ONE_DAY } from '../constants/time.js';
 const setSessionCookies = (res, session) => {
   res.cookie('sessionId', session._id.toString(), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     sameSite: 'none',
     maxAge: ONE_DAY
   });
   res.cookie('accessToken', session.accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     sameSite: 'none',
     maxAge: FIFTEEN_MINUTES
   });
 
   res.cookie('refreshToken', session.refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     sameSite: 'none',
     maxAge: ONE_DAY
   });
