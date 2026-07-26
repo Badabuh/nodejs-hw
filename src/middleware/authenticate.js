@@ -4,7 +4,7 @@ import createHttpError from 'http-errors';
 import { Session } from '../models/session.js';
 import { User } from '../models/user.js';
 
-export const authMiddleware = async (req, res, next) => {
+export const authenticate = async (req, res, next) => {
   const { sessionId, accessToken } = req.cookies;
 
   // 1. Перевіряємо наявність кукі

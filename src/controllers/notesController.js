@@ -4,21 +4,19 @@ const getAllNotes = async (req, res) => {
   const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
   const { page = 1, perPage = 10, search = '', tag } = req.query;
 
-  const notesQuery = await Note.find({ userId });
+  const notesQuery = Note.find().where('userId').equals(userId);
   if (search) {
-    notesQuery.where({
-      $or: [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } }
-      ]
-    });
+    notesQuery.or([
+      { title: { $regex: search, $options: 'i' } },
+      { content: { $regex: search, $options: 'i' } }
+    ]);
   }
   if (tag) {
     notesQuery.where('tag').equals(tag);
   }
 
   const [totalNotes, notes] = await Promise.all([
-    notesQuery.countDocuments(),
+    notesQuery.clone().countDocuments(),
     notesQuery.skip((page - 1) * perPage).limit(perPage)
   ]);
 
@@ -52,9 +50,21 @@ const updateNote = async (req, res) => {
   const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
   const { noteId } = req.params;
   const { title, content, tag } = req.body;
+  const updatePayload = {};
+
+  if (title) {
+    updatePayload.title = title;
+  }
+  if (content !== undefined) {
+    updatePayload.content = content;
+  }
+  if (tag !== undefined) {
+    updatePayload.tag = tag;
+  }
+
   const updatedNote = await Note.findOneAndUpdate(
     { _id: noteId, userId },
-    { title, content, tag },
+    updatePayload,
     { returnDocument: 'after' }
   );
   if (!updatedNote) {

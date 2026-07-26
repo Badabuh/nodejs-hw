@@ -13,11 +13,11 @@ import {
   updateNoteSchema,
   createNoteSchema
 } from '../validations/notesValidation.js';
-import { authMiddleware } from '../middleware/authenticate.js';
+import { authenticate } from '../middleware/authenticate.js';
 
 const router = Router();
 
-router.use(authMiddleware);
+router.use('/notes', authenticate);
 
 router.get('/notes', celebrate(getAllNotesSchema), getAllNotes);
 
