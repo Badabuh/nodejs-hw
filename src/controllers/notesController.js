@@ -1,36 +1,66 @@
 import Note from '../models/note.js';
 import createHttpError from 'http-errors';
-
 const getAllNotes = async (req, res) => {
+  const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
   const { page = 1, perPage = 10, search = '', tag } = req.query;
-  const notesQuery = Note.find();
+
+  const pipeline = [];
+
   if (search) {
-    notesQuery.where({
-      $or: [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } }
-      ]
+    pipeline.push({
+      $match: {
+        $or: [
+          { $text: { $search: search, $caseSensitive: false } },
+          { $text: { $search: search, $caseSensitive: false } }
+        ]
+      }
     });
   }
+
   if (tag) {
-    notesQuery.where('tag').equals(tag);
+    pipeline.push({
+      $match: {
+        tag
+      }
+    });
+  }
+  if (userId) {
+    pipeline.push({
+      $match: {
+        userId
+      }
+    });
   }
 
-  const [totalNotes, notes] = await Promise.all([
-    notesQuery.clone().countDocuments(),
-    notesQuery.skip((page - 1) * perPage).limit(perPage)
+  pipeline.push({
+    $sort: { createdAt: -1 }
+  });
+
+  const [result] = await Note.aggregate([
+    ...pipeline,
+    {
+      $facet: {
+        notes: [{ $skip: (page - 1) * perPage }, { $limit: perPage }],
+        totalCount: [{ $count: 'count' }]
+      }
+    }
   ]);
+
+  const notes = result.notes;
+  const totalCount = result.totalCount[0] ? result.totalCount[0].count : 0;
+
   res.status(200).json({
-    totalPages: Math.ceil(totalNotes / perPage),
-    page: page,
-    perPage: perPage,
-    notes: notes,
-    totalNotes: totalNotes
+    notes,
+    totalCount,
+    currentPage: page,
+    totalPages: Math.ceil(totalCount / perPage)
   });
 };
+
 const getNoteById = async (req, res) => {
+  const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
   const { noteId } = req.params;
-  const note = await Note.findById(noteId);
+  const note = await Note.findOne({ _id: noteId, userId });
   if (!note) {
     throw createHttpError(404, 'Note not found');
   }
@@ -38,17 +68,19 @@ const getNoteById = async (req, res) => {
 };
 
 const createNote = async (req, res) => {
+  const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
   const { title, content, tag } = req.body;
-  const newNote = await Note.create({ title, content, tag });
+  const newNote = await Note.create({ title, content, tag, userId });
   res.status(201).json(newNote);
 };
 
 const updateNote = async (req, res) => {
+  const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
   const { noteId } = req.params;
   const { title, content, tag } = req.body;
-  const updatedNote = await Note.findByIdAndUpdate(
-    noteId,
-    { title, content, tag },
+  const updatedNote = await Note.findOneAndUpdate(
+    { _id: noteId, userId },
+    { title, content, tag, userId },
     { returnDocument: 'after' }
   );
   if (!updatedNote) {
@@ -59,7 +91,7 @@ const updateNote = async (req, res) => {
 
 const deleteNote = async (req, res) => {
   const { noteId } = req.params;
-  const deletedNote = await Note.findByIdAndDelete(noteId);
+  const deletedNote = await Note.findOneAndDelete({ _id: noteId, userId: req.user._id });
   if (!deletedNote) {
     throw createHttpError(404, 'Note not found');
   }

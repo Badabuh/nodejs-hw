@@ -1,21 +1,27 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import 'dotenv/config';
 import { logger } from './middleware/logger.js';
-import router from './routes/notesRoutes.js';
+import notesRouter from './routes/notesRoutes.js';
+import authRouter from './routes/authRoutes.js';
 import helmet from 'helmet';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import cors from 'cors';
 import { connectMongoDB } from './db/connectMongoDB.js';
 import { errors } from 'celebrate';
+import { authMiddleware } from './middleware/authMiddleware.js';
 
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({ credentials: true, origin: true }));
 app.use(logger);
 app.use(helmet());
-app.use(router);
+app.use(authMiddleware);
+app.use(authRouter);
+app.use(notesRouter);
 app.use(notFoundHandler);
 app.use(errors());
 app.use(errorHandler);

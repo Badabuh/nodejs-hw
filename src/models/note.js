@@ -23,6 +23,7 @@ const NoteSchema = new Schema(
   { timestamps: true }
 );
 
-NoteSchema.index({ tag: 1 });
+NoteSchema.index({ tag: 1, createdAt: -1 });
+NoteSchema.index({ title: 'text', content: 'text' });
 
 export default mongoose.model('Note', NoteSchema);
