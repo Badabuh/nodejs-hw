@@ -29,7 +29,7 @@ const registerUser = async (req, res) => {
   const newSession = await createSession(newUser._id); // Create a session for the user
   setSessionCookies(res, newSession); // Set the session cookies in the response
 
-  res.status(201).json({ newUser });
+  res.status(201).json(newUser);
 };
 
 const loginUser = async (req, res) => {
@@ -52,7 +52,7 @@ const loginUser = async (req, res) => {
   await Session.deleteOne({ userId: user._id }); // Delete any existing session for the user
   const newSession = await createSession(user._id); // Create a session for the user
   setSessionCookies(res, newSession); // Set the session cookies in the response
-  res.status(200).json({ user: user, session: newSession });
+  res.status(200).json(user);
 };
 const logoutUser = async (req, res) => {
   const { sessionId } = req.cookies;
