@@ -1,4 +1,4 @@
-import Note from '../models/note.js';
+import { Note } from '../models/note.js';
 import createHttpError from 'http-errors';
 const getAllNotes = async (req, res) => {
   const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
