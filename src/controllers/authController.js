@@ -3,7 +3,7 @@ import { User } from '../models/user.js';
 import createHttpError from 'http-errors';
 import { setSessionCookies } from '../services/auth.js';
 import { createSession } from '../services/auth.js';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 
 const clearSessionCookies = (res) => {
   res.clearCookie('sessionId');
@@ -29,7 +29,7 @@ const registerUser = async (req, res) => {
   const newSession = await createSession(newUser._id); // Create a session for the user
   setSessionCookies(res, newSession); // Set the session cookies in the response
 
-  res.status(201).json({ user: newUser, session: newSession });
+  res.status(201).json({ newUser });
 };
 
 const loginUser = async (req, res) => {
@@ -65,7 +65,7 @@ const logoutUser = async (req, res) => {
 };
 const refreshUserSession = async (req, res) => {
   const { refreshToken, sessionId } = req.cookies;
-  const session = await Session.findOne({ refreshToken, sessionId });
+  const session = await Session.findOne({ _id: sessionId, refreshToken });
   if (!session) {
     clearSessionCookies(res);
     throw createHttpError(401, 'Session not found');
@@ -84,4 +84,4 @@ const refreshUserSession = async (req, res) => {
   res.status(200).json({ message: 'Session refreshed' });
 };
 
-export { registerUser, loginUser, logoutUser, refreshUserSession };
+export { registerUser, loginUser, refreshUserSession, logoutUser };
