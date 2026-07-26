@@ -12,7 +12,7 @@ const getAllNotesSchema = {
   })
 };
 
-const NoteByIdSchema = {
+const noteIdSchema = {
   [Segments.PARAMS]: Joi.object({
     noteId: Joi.string().hex().length(24).required()
   })
@@ -29,7 +29,7 @@ const createNoteSchema = {
 };
 
 const updateNoteSchema = {
-  ...NoteByIdSchema,
+  ...noteIdSchema,
   [Segments.BODY]: Joi.object({
     title: Joi.string().optional(),
     content: Joi.string().optional(),
@@ -39,4 +39,4 @@ const updateNoteSchema = {
   }).min(1)
 };
 
-export { getAllNotesSchema, NoteByIdSchema, createNoteSchema, updateNoteSchema };
+export { getAllNotesSchema, noteIdSchema, createNoteSchema, updateNoteSchema };
