@@ -6,7 +6,7 @@ import {
   // resetPasswordSchema,
   // resetEmailSchema,
   getSessionSchema
-} from '../validations/authValidate.js';
+} from '../validations/authValidation.js';
 import {
   createUser,
   loginUser,
@@ -14,7 +14,7 @@ import {
   // resetEmail,
   logoutUser,
   refreshSession
-} from '../controllers/authControllers.js';
+} from '../controllers/authController.js';
 
 const router = Router();
 
