@@ -4,21 +4,40 @@ const getAllNotes = async (req, res) => {
   const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
   const { page = 1, perPage = 10, search = '', tag } = req.query;
 
-  const notesQuery = Note.find().where('userId').equals(userId);
+  const pipeline = [];
+
   if (search) {
-    notesQuery.or([
-      { title: { $regex: search, $options: 'i' } },
-      { content: { $regex: search, $options: 'i' } }
-    ]);
+    pipeline.push({
+      $match: {
+        $text: { $search: search },
+        userId
+      }
+    });
   }
-  if (tag) {
-    notesQuery.where('tag').equals(tag);
+  if (userId) {
+    pipeline.push({
+      $match: {
+        userId
+      }
+    });
   }
 
-  const [totalNotes, notes] = await Promise.all([
-    notesQuery.clone().countDocuments(),
-    notesQuery.skip((page - 1) * perPage).limit(perPage)
-  ]);
+  if (tag) {
+    pipeline.push({
+      $match: {
+        tag,
+        userId
+      }
+    });
+  }
+
+  const result = await Note.aggregate(pipeline).facet({
+    notes: [{ $sort: { createdAt: -1 } }, { $skip: (page - 1) * perPage }, { $limit: perPage }],
+    totalNotes: [{ $count: 'count' }]
+  });
+
+  const notes = result[0].notes;
+  const totalNotes = result[0].totalNotes[0] ? result[0].totalNotes[0].count : 0;
 
   res.status(200).json({
     notes,
@@ -62,11 +81,9 @@ const updateNote = async (req, res) => {
     updatePayload.tag = tag;
   }
 
-  const updatedNote = await Note.findOneAndUpdate(
-    { _id: noteId, userId },
-    updatePayload,
-    { returnDocument: 'after' }
-  );
+  const updatedNote = await Note.findOneAndUpdate({ _id: noteId, userId }, updatePayload, {
+    returnDocument: 'after'
+  });
   if (!updatedNote) {
     throw createHttpError(404, 'Note not found');
   }
