@@ -121,11 +121,14 @@ const requestResetEmail = async (req, res) => {
 const resetPassword = async (req, res) => {
   const { token, password } = req.body;
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  if (!decoded || !decoded.sub || !decoded.sub.userId || !decoded.sub.email) {
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
     throw createHttpError(401, 'Invalid or expired token');
   }
-  const { email, userId } = decoded.sub;
+
+  const { userId, email } = decoded.sub;
 
   const user = await User.findOne({ _id: userId, email });
   if (!user) {
@@ -135,10 +138,9 @@ const resetPassword = async (req, res) => {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   user.password = hashedPassword;
-  user.save();
+  await user.save();
 
-  await Session.deleteMany({ userId });
-  res.status(200).json({ message: 'Password reset successfully' });
+  res.status(200).json({ message: 'Password reset successful' });
 };
 
 export {
