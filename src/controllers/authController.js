@@ -88,18 +88,20 @@ const refreshUserSession = async (req, res) => {
   res.status(200).json({ message: 'Session refreshed' });
 };
 
-const requestPasswordReset = async (req, res) => {
+const requestResetEmail = async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
   if (!user) {
     return res.status(200).json({ message: 'Password reset email sent successfully' });
   }
-  const resetToken = jwt.sign({ sub: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const resetToken = jwt.sign({ sub: { userId: user._id, email } }, process.env.JWT_SECRET, {
+    expiresIn: '15m'
+  });
 
-  const templateSource = await fs.readFile('src/templates/reset-email.html', 'utf8');
+  const templateSource = await fs.readFile('src/templates/reset-password-email.html', 'utf8');
   const template = handlebars.compile(templateSource);
   const html = template({
-    name: email,
+    name: user.username,
     link: `${process.env.FRONTEND_DOMAIN}/reset-password?token=${resetToken}`
   });
 
@@ -121,8 +123,8 @@ const resetPassword = async (req, res) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const { userId, email } = decoded.sub;
-    const user = await User.findOne({ _id: userId, email: email }); // Check if the user exists
+    const { email, userId } = decoded.sub;
+    const user = await User.findOne({ _id: userId, email });
     if (!user) {
       throw createHttpError(404, 'User not found');
     }
@@ -141,6 +143,6 @@ export {
   loginUser,
   refreshUserSession,
   logoutUser,
-  requestPasswordReset,
+  requestResetEmail,
   resetPassword
 };

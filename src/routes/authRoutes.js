@@ -3,7 +3,7 @@ import { celebrate } from 'celebrate';
 import {
   registerUserSchema,
   loginUserSchema,
-  requestPasswordResetSchema,
+  requestResetEmailSchema,
   resetPasswordSchema
 } from '../validations/authValidation.js';
 import {
@@ -11,7 +11,7 @@ import {
   loginUser,
   logoutUser,
   refreshUserSession,
-  requestPasswordReset,
+  requestResetEmail,
   resetPassword
 } from '../controllers/authController.js';
 
@@ -21,11 +21,7 @@ router.post('/auth/register', celebrate(registerUserSchema), registerUser);
 router.post('/auth/login', celebrate(loginUserSchema), loginUser);
 router.post('/auth/logout', logoutUser);
 router.post('/auth/refresh', refreshUserSession);
-router.post(
-  '/auth/request-password-reset',
-  celebrate(requestPasswordResetSchema),
-  requestPasswordReset
-);
+router.post('/auth/request-reset-email', celebrate(requestResetEmailSchema), requestResetEmail);
 router.post('/auth/reset-password', celebrate(resetPasswordSchema), resetPassword);
 
 export default router;
