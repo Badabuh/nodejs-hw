@@ -2,10 +2,10 @@ import { Session } from '../models/session.js';
 import { User } from '../models/user.js';
 import createHttpError from 'http-errors';
 import jwt from 'jsonwebtoken';
-import { sendEmail } from '../utils/sendEmail.js';
+import { sendEmail } from '../utils/sendMail.js';
 import { setSessionCookies } from '../services/auth.js';
 import { createSession } from '../services/auth.js';
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import fs from 'node:fs/promises';
 import handlebars from 'handlebars';
 
