@@ -1,7 +1,7 @@
 import { Note } from '../models/note.js';
 import createHttpError from 'http-errors';
 const getAllNotes = async (req, res) => {
-  const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
+  const userId = req.user._id;
   const { page = 1, perPage = 10, search = '', tag } = req.query;
 
   const pipeline = [];
@@ -49,7 +49,7 @@ const getAllNotes = async (req, res) => {
 };
 
 const getNoteById = async (req, res) => {
-  const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
+  const userId = req.user._id;
   const { noteId } = req.params;
   const note = await Note.findOne({ _id: noteId, userId });
   if (!note) {
@@ -59,14 +59,14 @@ const getNoteById = async (req, res) => {
 };
 
 const createNote = async (req, res) => {
-  const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
+  const userId = req.user._id;
   const { title, content, tag } = req.body;
   const newNote = await Note.create({ title, content, tag, userId });
   res.status(201).json(newNote);
 };
 
 const updateNote = async (req, res) => {
-  const userId = req.user._id; // Assuming the user is authenticated and their ID is available in req.user
+  const userId = req.user._id;
   const { noteId } = req.params;
   const { title, content, tag } = req.body;
   const updatePayload = {};
